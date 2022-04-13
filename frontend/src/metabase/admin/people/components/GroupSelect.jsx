@@ -6,6 +6,8 @@ import Icon from "metabase/components/Icon";
 import Select from "metabase/core/components/Select";
 import PopoverWithTrigger from "metabase/components/PopoverWithTrigger";
 
+import { PLUGIN_GROUP_MODERATORS } from "metabase/plugins";
+
 import GroupSummary from "./GroupSummary";
 
 import {
@@ -16,12 +18,17 @@ import {
   getGroupNameLocalized,
 } from "metabase/lib/groups";
 
+const TypeToggle = () => (
+  <PLUGIN_GROUP_MODERATORS.UserTypeToggle type="moderator" />
+);
+
 export const GroupSelect = ({
   groups,
   selectedGroupIds = new Set(),
   onGroupChange,
   isCurrentUser = false,
   emptyListMessage = t`No groups`,
+  onChangeMembership,
 }) => {
   const triggerElement = (
     <div className="flex align-center">
@@ -62,6 +69,9 @@ export const GroupSelect = ({
       optionValueFn={group => group.id}
       optionNameFn={getGroupNameLocalized}
       optionClassNameFn={getGroupColor}
+      optionExtraFn={group => {
+        return <TypeToggle />;
+      }}
       value={selectedGroupIds}
       sections={
         topGroups.length > 0

@@ -56,6 +56,7 @@ export default class Select extends Component {
     optionSectionFn: PropTypes.func,
     optionDisabledFn: PropTypes.func,
     optionIconFn: PropTypes.func,
+    optionExtraFn: PropTypes.func,
     optionClassNameFn: PropTypes.func,
   };
 
@@ -248,6 +249,7 @@ export default class Select extends Component {
           getItemClassName={this.props.optionClassNameFn}
           renderItemDescription={this.props.optionDescriptionFn}
           renderItemIcon={this.renderItemIcon}
+          renderItemExtra={this.props.optionExtraFn}
           onChange={this.handleChange}
           searchable={!!searchProp}
           searchProp={searchProp}

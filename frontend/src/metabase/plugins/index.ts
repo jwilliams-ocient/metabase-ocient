@@ -9,7 +9,6 @@ import {
   Collection,
   Bookmark,
   GroupsPermissions,
-  User,
   Dataset,
 } from "metabase-types/api";
 import { State } from "metabase-types/store";
@@ -152,4 +151,12 @@ export const PLUGIN_GENERAL_PERMISSIONS = {
   selectors: {
     canManageSubscriptions: (_state: any) => true,
   },
+};
+
+export const PLUGIN_GROUP_MODERATORS: {
+  UserTypeToggle: ((props: any) => JSX.Element) | null;
+  UserTypeCell: ((props: any) => JSX.Element) | null;
+} = {
+  UserTypeToggle: null,
+  UserTypeCell: null,
 };

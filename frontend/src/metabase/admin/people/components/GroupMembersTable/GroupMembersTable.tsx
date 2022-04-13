@@ -10,7 +10,26 @@ import PaginationControls from "metabase/components/PaginationControls";
 
 import User from "metabase/entities/users";
 
-import AddMemberRow from "./AddMemberRow";
+import AddMemberRow from "../AddMemberRow";
+import { Group, Member, User as IUser } from "metabase-types/api";
+import { PLUGIN_GROUP_MODERATORS } from "metabase/plugins";
+
+interface GroupMembersTableProps {
+  group: Group;
+  members: Member[];
+  currentUser: Partial<IUser>;
+  users: IUser[];
+  showAddUser: any;
+  text: string;
+  selectedUsers: IUser[];
+  onAddUserCancel: () => void;
+  onAddUserDone: () => void;
+  onAddUserTextChange: (value: string) => void;
+  onUserSuggestionAccepted: (user: IUser) => void;
+  onRemoveUserClicked: (user: IUser) => void;
+  onRemoveUserFromSelection: (user: IUser) => void;
+  onMembershipUpdate: (user: Member) => void;
+}
 
 export default function GroupMembersTable({
   group,
@@ -26,32 +45,53 @@ export default function GroupMembersTable({
   onUserSuggestionAccepted,
   onRemoveUserClicked,
   onRemoveUserFromSelection,
-}) {
+  onMembershipUpdate,
+}: GroupMembersTableProps) {
   // you can't remove people from Default and you can't remove the last user from Admin
-  const isCurrentUser = ({ id }) => id === currentUserId;
-  const canRemove = user =>
+  const isCurrentUser = ({ id }: Partial<IUser>) => id === currentUserId;
+  const canRemove = (user: IUser) =>
     !isDefaultGroup(group) && !(isAdminGroup(group) && isCurrentUser(user));
 
   const entityQuery = { group_id: group.id };
 
   return (
     <User.ListLoader pageSize={25} entityQuery={entityQuery}>
-      {({ list, page, pageSize, onNextPage, onPreviousPage, reload }) => {
+      {({
+        list,
+        page,
+        pageSize,
+        onNextPage,
+        onPreviousPage,
+        reload,
+      }: {
+        list: IUser[];
+        page: number;
+        pageSize: number;
+        onNextPage: () => void;
+        onPreviousPage: () => void;
+        reload: () => void;
+      }) => {
         const hasMembers = members.length !== 0;
 
-        const handleAddUser = async user => {
+        const handleAddUser = async () => {
           await onAddUserDone();
           reload();
         };
 
-        const handleRemoveUser = async user => {
+        const handleRemoveUser = async (user: IUser) => {
           await onRemoveUserClicked(user);
           reload();
         };
 
+        const columnTitles = [
+          t`Name`,
+          PLUGIN_GROUP_MODERATORS.UserTypeCell ? t`Type` : null,
+          t`Email`,
+        ].filter(Boolean);
+
         return (
           <React.Fragment>
-            <AdminContentTable columnTitles={[t`Members`, t`Email`]}>
+            <AdminContentTable columnTitles={columnTitles}>
               {showAddUser && (
                 <AddMemberRow
                   users={users}
@@ -68,8 +108,12 @@ export default function GroupMembersTable({
                 <UserRow
                   key={index}
                   user={user}
+                  membership={members.find(
+                    membership => membership.user_id === user.id,
+                  )}
                   canRemove={canRemove(user)}
                   onRemoveUserClicked={handleRemoveUser}
+                  onMembershipUpdate={onMembershipUpdate}
                 />
               ))}
             </AdminContentTable>
@@ -99,36 +143,42 @@ export default function GroupMembersTable({
   );
 }
 
-GroupMembersTable.propTypes = {
-  group: PropTypes.object.isRequired,
-  members: PropTypes.array.isRequired,
-  currentUser: PropTypes.object.isRequired,
-  users: PropTypes.array.isRequired,
-  showAddUser: PropTypes.bool.isRequired,
-  text: PropTypes.string,
-  selectedUsers: PropTypes.array,
-  onAddUserCancel: PropTypes.func.isRequired,
-  onAddUserDone: PropTypes.func.isRequired,
-  onAddUserTextChange: PropTypes.func.isRequired,
-  onUserSuggestionAccepted: PropTypes.func.isRequired,
-  onRemoveUserClicked: PropTypes.func.isRequired,
-  onRemoveUserFromSelection: PropTypes.func.isRequired,
-};
+interface UserRowProps {
+  user: IUser;
+  canRemove: boolean;
+  onRemoveUserClicked: (user: IUser) => void;
+  onMembershipUpdate: (membership: Member) => void;
+  membership?: Member;
+}
 
-const UserRow = ({ user, canRemove, onRemoveUserClicked }) => (
-  <tr>
-    <td>{user.first_name + " " + user.last_name}</td>
-    <td>{user.email}</td>
-    {canRemove ? (
-      <td
-        className="text-right cursor-pointer"
-        onClick={() => onRemoveUserClicked(user)}
-      >
-        <Icon name="close" className="text-light" size={16} />
-      </td>
-    ) : null}
-  </tr>
-);
+const UserRow = ({
+  user,
+  canRemove,
+  onRemoveUserClicked,
+  onMembershipUpdate,
+  membership,
+}: UserRowProps) => {
+  return (
+    <tr>
+      <td>{user.first_name + " " + user.last_name}</td>
+      {membership && PLUGIN_GROUP_MODERATORS.UserTypeCell && (
+        <PLUGIN_GROUP_MODERATORS.UserTypeCell
+          membership={membership}
+          onMembershipUpdate={onMembershipUpdate}
+        />
+      )}
+      <td>{user.email}</td>
+      {canRemove ? (
+        <td
+          className="text-right cursor-pointer"
+          onClick={() => onRemoveUserClicked(user)}
+        >
+          <Icon name="close" className="text-light" size={16} />
+        </td>
+      ) : null}
+    </tr>
+  );
+};
 
 UserRow.propTypes = {
   user: PropTypes.object.isRequired,

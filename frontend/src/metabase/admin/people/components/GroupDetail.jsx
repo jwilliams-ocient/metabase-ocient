@@ -16,8 +16,8 @@ import { t, ngettext, msgid } from "ttag";
 import Alert from "metabase/components/Alert";
 import AdminPaneLayout from "metabase/components/AdminPaneLayout";
 
-import GroupMembersTable from "./group-members/GroupMembersTable";
-import { deleteMembership } from "../people";
+import GroupMembersTable from "./GroupMembersTable";
+import { deleteMembership, updateMembership } from "../people";
 
 const GroupDescription = ({ group }) =>
   isDefaultGroup(group) ? (
@@ -43,6 +43,7 @@ const GroupDescription = ({ group }) =>
 
 @connect(null, {
   deleteMembership,
+  updateMembership,
 })
 export default class GroupDetail extends Component {
   constructor(props, context) {
@@ -113,6 +114,10 @@ export default class GroupDetail extends Component {
       selectedUsers: this.state.selectedUsers.filter(u => u.id !== user.id),
     });
   }
+
+  onMembershipUpdate = membership => {
+    this.props.updateMembership(membership);
+  };
 
   async onRemoveUserClicked(user) {
     try {
@@ -199,6 +204,7 @@ export default class GroupDetail extends Component {
           onUserSuggestionAccepted={this.onUserSuggestionAccepted.bind(this)}
           onRemoveUserFromSelection={this.onRemoveUserFromSelection.bind(this)}
           onRemoveUserClicked={this.onRemoveUserClicked.bind(this)}
+          onMembershipUpdate={this.onMembershipUpdate}
         />
         <Alert
           message={alertMessage}

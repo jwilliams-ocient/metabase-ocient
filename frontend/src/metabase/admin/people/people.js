@@ -16,6 +16,7 @@ import Users from "metabase/entities/users";
 export const LOAD_MEMBERSHIPS = "metabase/admin/people/LOAD_MEMBERSHIPS";
 export const CREATE_MEMBERSHIP = "metabase/admin/people/CREATE_MEMBERSHIP";
 export const DELETE_MEMBERSHIP = "metabase/admin/people/DELETE_MEMBERSHIP";
+export const UPDATE_MEMBERSHIP = "metabase/admin/people/UPDATE_MEMBERSHIP";
 export const CLEAR_TEMPORARY_PASSWORD =
   "metabase/admin/people/CLEAR_TEMPORARY_PASSWORD";
 
@@ -56,6 +57,18 @@ export const deleteMembership = createAction(
   },
 );
 
+export const updateMembership = createAction(
+  UPDATE_MEMBERSHIP,
+  async membership => {
+    await PermissionsApi.updateMembership({
+      ...membership,
+      id: membership.membership_id,
+    });
+    MetabaseAnalytics.trackStructEvent("People Groups", "Membership Updated");
+    return membership;
+  },
+);
+
 export const clearTemporaryPassword = createAction(CLEAR_TEMPORARY_PASSWORD);
 
 // REDUCERS
@@ -66,6 +79,10 @@ const memberships = handleActions(
       next: (state, { payload: memberships }) => memberships,
     },
     [CREATE_MEMBERSHIP]: {
+      next: (state, { payload: membership }) =>
+        assoc(state, membership.membership_id, membership),
+    },
+    [UPDATE_MEMBERSHIP]: {
       next: (state, { payload: membership }) =>
         assoc(state, membership.membership_id, membership),
     },
