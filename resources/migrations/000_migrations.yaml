@@ -11459,6 +11459,14 @@ databaseChangeLog:
   - changeSet:
       id: v43.00-057
       author: qnkhuat
+      comment: Added 0.43.0 - Rename general_permissions_revision_id_seq
+      changes:
+        - sql:
+            - sql: ALTER SEQUENCE general_permissions_revision_id_seq RENAME TO application_permissions_revision_id_seq
+
+  - changeSet:
+      id: v43.00-058
+      author: qnkhuat
       comment: Added 0.43.0 - Rename general permissios to application permissions
       changes:
         - sql:
